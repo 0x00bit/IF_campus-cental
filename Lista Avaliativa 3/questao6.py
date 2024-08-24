@@ -9,35 +9,33 @@ meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'A
 max_cotacoes = []
 media_cotacoes = []
 
-acumulador = [[], []] * 12  # Acumuladores para valores e contagem por mês
+# Inicializar acumuladores para cada mês
+cotacoes = [[float('-inf'), '', 0, 0] for _ in range(12)]  # [max_cotacao, data_max, soma_cotacoes, contagem]
 
 for line in lines:
     parts = line.strip().split(';')
     if len(parts) >= 6:
         date = parts[0]
         venda = float(parts[5].replace(',', '.'))
-        month = int(date[2:4]) - 1  # Converter mês para índice (0-11)
+        month = int(date[2:4]) - 1
         
-        if not acumulador[month]:
-            acumulador[month] = [venda, venda, 1]  # inicializar com min, max, count
-        else:
-            acumulador[month][0] = min(acumulador[month][0], venda)  # Min
-            acumulador[month][1] = max(acumulador[month][1], venda)  # Max
-            acumulador[month][2] += 1
-            acumulador[month][3] += venda  # Soma para média
+        if venda > cotacoes[month][0]:
+            cotacoes[month][0] = venda
+            cotacoes[month][1] = date  # Atualiza a data da maior cotação
+        
+        cotacoes[month][2] += venda
+        cotacoes[month][3] += 1
 
-# Montar listas de resultados
 for i in range(12):
-    if acumulador[i][2] > 0:
-        max_cotacoes.append([meses[i], round(acumulador[i][1], 2), 'Dado não disponível'])  # Não há data específica no exemplo
-        media = acumulador[i][3] / acumulador[i][2]
+    if cotacoes[i][3] > 0:
+        media = cotacoes[i][2] / cotacoes[i][3]
+        max_cotacoes.append([meses[i], round(cotacoes[i][0], 2), cotacoes[i][1]])
         media_cotacoes.append([meses[i], round(media, 2)])
 
 # Ordenar as listas por mês
 max_cotacoes.sort(key=lambda x: meses.index(x[0]))
 media_cotacoes.sort(key=lambda x: meses.index(x[0]))
 
-# Exibir resultados
 print("Maior cotação e data por mês:")
 for item in max_cotacoes:
     print(f"Mês: {item[0]}, Maior Cotação: {item[1]}, Data: {item[2]}")
