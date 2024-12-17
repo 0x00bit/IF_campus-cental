@@ -36,62 +36,46 @@ def unpackBits(section):
     bytes_array = []  # Auxiliary variable
 
     for byte in range(0, len(section), 4):
-        bytes_array.append(struct.unpack("I", section[byte:byte+4])[0])
+        bytes_array.append(struct.unpack("<I", section[byte:byte+4])[0])
 
     array_to_hex = hex(sum(bytes_array))
     return array_to_hex
 
 
+def recordedPackets(arquivo):
+
+    """This function is responsible to read the header of network packages
+    and theirs respective data"""
+
+    print(f"{'-'*12} Cabeçalho de rede {'-'*12}")
+
+    offset = 24
+    PACKET_HEADER_SIZE = 16
+    packer_header = arquivo[offset:offset + PACKET_HEADER_SIZE]
+
+
 def fileHead(arquivo):
 
-    package = {}
+    print(f"{'-'*12} Cabeçalho PCAP {'-'*12}")
+
+    all = arquivo
 
     HEADER = arquivo[0]
-    print(HEADER)
 
-    # Auxiliar variables to translations and paddings
+    magic_number, major, minor, reserved1, reserved2, snaplen, linktype = struct.unpack("<IHHIIII", HEADER[:24])
 
-    ma_v = HEADER[4:6]
-    mi_v = HEADER[6:8]
-    majorVersion = ma_v.rjust(4, b'\x00')
-    minorVersion = mi_v.rjust(4, b'\x00')
+    package = {
+        "Magic Number": hex(magic_number),
+        "Major Version": hex(major),
+        "Minor Version": hex(minor),
+        "Reserved 1": hex(reserved1),
+        "Reserved 2": hex(reserved2),
+        "Snaplen": hex(snaplen),
+        "LinkType": hex(linktype)
+    }
 
-    Reserved1 = HEADER[8:40]
-    Reserved2 = HEADER[40:72]
-
-    SnapLen = HEADER[72:104]  # 32 bits
-    LinkType = HEADER[104:120]  # 16 bits
-
-    package["Magic Number"] = hex(struct.unpack("I", HEADER[:4])[0])  # Little-endian
-
-    # Checking if the application is reading a PCAP file
-    if package["Magic Number"] != MAGIC1:
-        sys.exit("Arquivo não PCAP")
-
-    # Building the Header sector
-    package["Major Version"] = hex(struct.unpack("I", majorVersion)[0])
-    package["Minor Version"] = hex(struct.unpack("I", minorVersion)[0])
-
-    package["Reserved1"] = unpackBits(Reserved1)
-    package["Reserved2"] = unpackBits(Reserved2)
-
-    package["SnapLen"] = unpackBits(SnapLen)
-    package["LinkType"] = unpackBits(LinkType)
-    print(len(Reserved2))
+    print(package)
+    recordedPackets(all)
 
 
 fileHead(getFile())
-
-
-
-"""     print(temp_LinkType)
-
-    for byte in range(0, len(temp_SnapLen), 4):
-        SnapLen_aux.append(struct.unpack("I", temp_SnapLen[byte:byte+4])[0])
-    package["SnapLen"] = hex(sum(SnapLen_aux))  # SnapLen_to_hex
-
-    for byte in range(0, len(temp_LinkType), 4):
-        LinkType_aux.append(struct.unpack("I", temp_LinkType[byte:byte+4])[0])
-
-    package["LinkType"] = hex(sum(LinkType_aux))
- """
