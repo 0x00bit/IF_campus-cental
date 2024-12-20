@@ -51,7 +51,26 @@ def recordedPackets(arquivo):
 
     offset = 24
     PACKET_HEADER_SIZE = 16
-    packer_header = arquivo[offset:offset + PACKET_HEADER_SIZE]
+
+    for k in range(1, len(arquivo)):
+        print(k)
+
+        packet_header = arquivo[k][offset:offset + PACKET_HEADER_SIZE]
+        if len(packet_header) < PACKET_HEADER_SIZE:
+            print("Pacote corrompido ou incompleto")
+	
+        
+        timestamp_sec, timestamp_usec, cap_len, orig_len = struct.unpack("<IIII", packet_header)
+
+        recorded_packet = {
+            "Timestamp Segundos": timestamp_sec,
+            "Timestamp Microsegundos": timestamp_usec,
+            "Largura Pacote Capturado": cap_len,
+            "Largura Pacote Original": orig_len
+        }
+
+        print(recorded_packet)
+        k = k+1
 
 
 def fileHead(arquivo):
@@ -75,7 +94,8 @@ def fileHead(arquivo):
     }
 
     print(package)
-    recordedPackets(all)
 
 
-fileHead(getFile())
+arquivo = getFile()
+fileHead(arquivo)
+recordedPackets(arquivo)
